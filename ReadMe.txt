@@ -1,0 +1,1 @@
+This is an ASCOM driver for the Opengear "IP Power 9258" power strip.

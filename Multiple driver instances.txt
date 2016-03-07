@@ -1,0 +1,18 @@
+Tim Long
+Oct 6, 2015 
+View Source
+Unfortunately, yes that is the hack that must be used to get multiple driver instances.
+ 
+The problem is that the driver’s settings are keyed on the driver’s ProgID, so if you load 
+the same driver twice you get two drivers with exactly the same settings, including the serial port, etc. 
+Serial ports are singletons so the second instance comes unstuck when it tries to open the serial port.
+ 
+The recommended workaround is to produce two identical drivers that differ only by ProgID, 
+which means there has to be two copies of the driver in the Chooser, and so on.
+ 
+Some driver developers have found alternative techniques by ignoring the ASCOM Profile store 
+and implementing their own settings mechanism, but that is very driver-specific and as an app developer you can’t rely on it.
+ 
+ 
+Best Regards,
+Tim Long
