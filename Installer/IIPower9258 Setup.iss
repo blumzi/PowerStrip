@@ -38,7 +38,7 @@ Source: "C:\Users\Blumzi\Documents\Visual Studio 2015\Projects\PowerStrip\IP Pow
 ; Require a read-me HTML to appear after installation, maybe driver's Help doc
 Source: "C:\Users\Blumzi\Documents\Visual Studio 2015\Projects\PowerStrip\ReadMe.txt"; DestDir: "{app}"; Flags: isreadme
 ; TODO: Add other files needed by your driver here (add subfolders above)
-Source: "C:\Users\Blumzi\Documents\Visual Studio 2015\Projects\PowerStrip\Docs\IP POWER User Manual.pdf"; DestDir: "{app}"
+Source: "C:\Users\Blumzi\Documents\IP POWER User Manual.pdf"; DestDir: "{app}"
 
 
 ; Only if driver is .NET

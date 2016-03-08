@@ -75,6 +75,10 @@ namespace ASCOM.IPPower9258
         internal static string traceStateProfileName = "Trace Level";
         internal static string traceStateDefault = "false";
 
+        internal static string userProfileName = "User";
+        internal static string passwordProfileName = "Password";
+        internal static string enabledProfileName = "Enabled";
+
 
         // Variables to hold the currrent device configuration
         internal static bool traceState;
@@ -90,6 +94,7 @@ namespace ASCOM.IPPower9258
         private TraceLogger tl;
 
         public IPPower9258 ipPower9258 = IPPower9258.Instance;
+        public const int nBoxes = 4;
 
         private int numSwitch = IPPower9258.Instance.MaxSwitch;
 
@@ -99,7 +104,7 @@ namespace ASCOM.IPPower9258
         /// </summary>
         public Switch()
         {
-
+            ipPower9258.init(nBoxes);
             ReadProfile(); // Read device configuration from the ASCOM Profile store
 
             tl = new TraceLogger("", "IPPower9258");
@@ -131,7 +136,7 @@ namespace ASCOM.IPPower9258
             if (IsConnected)
                 System.Windows.Forms.MessageBox.Show("Already connected, just press OK");
 
-            using (SetupDialogForm F = new SetupDialogForm())
+            using (SetupDialogForm F = new SetupDialogForm(DriverVersion))
             {
                 var result = F.ShowDialog();
                 if (result == System.Windows.Forms.DialogResult.OK)
@@ -201,16 +206,8 @@ namespace ASCOM.IPPower9258
                 if (value == IsConnected)
                     return;
 
-                if (value)
-                {
-                    connectedState = true;
-                    tl.LogMessage("Connected Set", "Connecting to " + ipPower9258.ipAddress);
-                }
-                else
-                {
-                    connectedState = false;
-                    tl.LogMessage("Connected Set", "Disconnecting from " + ipPower9258.ipAddress);
-                }
+                connectedState = value;
+                tl.LogMessage("Connected Set - ", connectedState.ToString());
             }
         }
 
@@ -293,8 +290,10 @@ namespace ASCOM.IPPower9258
         public string GetSwitchName(short id)
         {
             Validate("GetSwitchName", id);
+            int switchNo = id % nBoxes;
+            int boxNo = switchNo / nBoxes;
 
-            string ret = ipPower9258.switchNames[id];
+            string ret = ipPower9258.GetSwitchName(id);
             tl.LogMessage("GetSwitchName", string.Format("GetSwitchName({0}) - {1}", id, ret));
             return ret;
         }
@@ -640,12 +639,21 @@ namespace ASCOM.IPPower9258
                 driverProfile.DeviceType = "Switch";
                 traceState = Convert.ToBoolean(driverProfile.GetValue(driverID, traceStateProfileName, string.Empty, traceStateDefault));
 
-                ipPower9258.ipAddress = driverProfile.GetValue(driverID, ipAddressProfileName, string.Empty, ipAddressDefault);
-
-                for (int i = 0; i < numSwitch; i++)
+                for (int box = 0; box < nBoxes; box++)
                 {
-                    ipPower9258.switchNames[i] = driverProfile.GetValue(driverID, "SwitchName" + i.ToString(), string.Empty);
-                    ipPower9258.switchDescriptions[i] = driverProfile.GetValue(driverID, "SwitchDesc" + i.ToString(), string.Empty);
+                    string subKey = "Box" + box.ToString(); 
+
+                    IPPower9258.Instance.ipAddresses[box] = driverProfile.GetValue(driverID, ipAddressProfileName, subKey, string.Empty);
+                    IPPower9258.Instance.users[box] = driverProfile.GetValue(driverID, userProfileName, subKey, string.Empty);
+                    IPPower9258.Instance.passwords[box] = driverProfile.GetValue(driverID, passwordProfileName, subKey, string.Empty);
+                    
+                    bool.TryParse(driverProfile.GetValue(driverID, enabledProfileName, subKey, "false"), out IPPower9258.Instance.enabled[box]);
+
+                    for (int sw = 0; sw < IPPower9258.nSwitchesPerBox; sw++)
+                    {
+                        ipPower9258.switchNames[box, sw] = driverProfile.GetValue(driverID, "SwitchName" + sw.ToString(), subKey, string.Empty);
+                        ipPower9258.switchDescriptions[box, sw] = driverProfile.GetValue(driverID, "SwitchDesc" + sw.ToString(), subKey, string.Empty);
+                    }
                 }
             }
         }
@@ -659,15 +667,24 @@ namespace ASCOM.IPPower9258
             {
                 driverProfile.DeviceType = "Switch";
                 driverProfile.WriteValue(driverID, traceStateProfileName, traceState.ToString());
-                driverProfile.WriteValue(driverID, ipAddressProfileName, ipPower9258.ipAddress);
-                for (int i = 0; i < numSwitch; i++)
+
+                for (int box = 0; box < nBoxes; box++)
                 {
-                    driverProfile.WriteValue(driverID, "SwitchName" + i.ToString(), ipPower9258.switchNames[i]);
-                    driverProfile.WriteValue(driverID, "SwitchDesc" + i.ToString(), ipPower9258.switchDescriptions[i]);
+                    string subKey = "Box" + box.ToString();
+
+                    driverProfile.WriteValue(driverID, ipAddressProfileName, ipPower9258.ipAddresses[box], subKey);
+                    driverProfile.WriteValue(driverID, userProfileName, ipPower9258.users[box], subKey);
+                    driverProfile.WriteValue(driverID, passwordProfileName, ipPower9258.passwords[box], subKey);
+                    driverProfile.WriteValue(driverID, enabledProfileName, ipPower9258.enabled[box].ToString(), subKey);
+
+                    for (int sw = 0; sw < IPPower9258.nSwitchesPerBox; sw++)
+                    {
+                        driverProfile.WriteValue(driverID, "SwitchName" + sw.ToString(), ipPower9258.switchNames[box, sw], subKey);
+                        driverProfile.WriteValue(driverID, "SwitchDesc" + sw.ToString(), ipPower9258.switchDescriptions[box, sw], subKey);
+                    }
                 }
             }
         }
-
         #endregion
     }
 }

@@ -34,7 +34,7 @@ Name: "{cf}\ASCOM\Uninstall\Switch\IIPower9258"
 ; TODO: Add subfolders below {app} as needed (e.g. Name: "{app}\MyFolder")
 
 [Files]
-Source: "C:\Users\Blumzi\Documents\Visual Studio 2015\Projects\PowerStrip\bin\Release\ASCOM.IPPower9258.Switch.dll"; DestDir: "{app}"
+Source: "C:\Users\Blumzi\Documents\Visual Studio 2015\Projects\PowerStrip\IP Power 9258\obj\Debug\ASCOM.IPPower9258.Switch.dll"; DestDir: "{app}"
 ; Require a read-me HTML to appear after installation, maybe driver's Help doc
 Source: "C:\Users\Blumzi\Documents\Visual Studio 2015\Projects\PowerStrip\ReadMe.txt"; DestDir: "{app}"; Flags: isreadme
 ; TODO: Add other files needed by your driver here (add subfolders above)
