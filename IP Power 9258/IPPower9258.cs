@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-using ASCOM.Wise40.Hardware;
 using System.Net;
 using System.IO;
 using System.Net.NetworkInformation;

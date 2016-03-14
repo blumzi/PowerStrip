@@ -12,8 +12,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test IpPower9258", "Test Ip
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Install", "Install", "{1F851B15-E144-4410-9340-F69F424EDBAF}"
 	ProjectSection(SolutionItems) = preProject
-		IIPower9258 Setup.exe = IIPower9258 Setup.exe
-		IIPower9258 Setup.iss = IIPower9258 Setup.iss
+		IPPower9258 Setup.exe = IPPower9258 Setup.exe
+		IPPower9258 Setup.iss = IPPower9258 Setup.iss
 		ReadMe.txt = ReadMe.txt
 	EndProjectSection
 EndProject
