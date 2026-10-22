@@ -96,8 +96,6 @@ namespace ASCOM.IPPower9258
         public IPPower9258 ipPower9258 = IPPower9258.Instance;
         public const int nBoxes = 4;
 
-        private int numSwitch = IPPower9258.Instance.MaxSwitch;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="IPPower9258"/> class.
         /// Must be public for COM registration.
@@ -481,6 +479,8 @@ namespace ASCOM.IPPower9258
         /// <param name="id">The id.</param>
         private void Validate(string message, short id)
         {
+            int numSwitch = ipPower9258.MaxSwitch;  // read live: init() sets it in the constructor
+
             if (id < 0 || id >= numSwitch)
             {
                 tl.LogMessage(message, string.Format("Switch {0} not available, range is 0 to {1}", id, numSwitch - 1));
