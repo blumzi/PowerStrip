@@ -6,6 +6,7 @@ using System.Text;
 using System.Net;
 using System.IO;
 using System.Net.NetworkInformation;
+using System.Text.RegularExpressions;
 
 namespace ASCOM.IPPower9258
 {
@@ -86,12 +87,22 @@ namespace ASCOM.IPPower9258
             StreamReader readStream = new StreamReader(receiveStream);
 
             // <html>P60=0,P61=0,P62=0,P63=0,P64=0,P65=0,P66=0,P67=0</html>
-            string statLine = readStream.ReadToEnd();
-            statLine = statLine.Remove(0, 6);
-            statLine = statLine.Remove(statLine.IndexOf('<'));
-            string[] stats = statLine.Split(',');
-            string status = stats[id].Remove(0, stats[id].IndexOf('=') + 1);
-            return (status == "0") ? false : true;
+            string[] stats = ParseReply(readStream.ReadToEnd(), url);
+            string key = string.Format("P6{0}=", id % nSwitchesPerBox);
+            string stat = stats.FirstOrDefault(s => s.StartsWith(key));
+            if (stat == null)
+                throw new DriverException(string.Format("No {0} in the reply from {1}", key, url));
+            return stat.Substring(key.Length) == "1";
+        }
+
+        // Only "<html>P6n=0|1,...</html>" carries states. Anything else, such as
+        // "<html>HTTPCMD_TRYLIMIT</html>", is an error from the box and must never read as a state.
+        private static string[] ParseReply(string reply, string url)
+        {
+            Match m = Regex.Match(reply, @"^\s*<html>\s*(P6\d=[01](,P6\d=[01])*)\s*</html>\s*$");
+            if (!m.Success)
+                throw new DriverException(string.Format("Unexpected reply from {0}: \"{1}\"", url, reply.Trim()));
+            return m.Groups[1].Value.Split(',');
         }
 
         public void SetSwitch(short id, bool state)
@@ -101,7 +112,7 @@ namespace ASCOM.IPPower9258
             if (!enabled[boxNo])
                 throw new InvalidValueException(string.Format("Box #{0} is disabled", boxNo));
 
-            string setting = string.Format("P6{0}={1}", id, state ? "1" : "0");
+            string setting = string.Format("P6{0}={1}", id % nSwitchesPerBox, state ? "1" : "0");
             string url = string.Format("http://{0}/Set.cmd?CMD=SetPower+{1}", ipAddresses[boxNo], setting);
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
@@ -112,9 +123,7 @@ namespace ASCOM.IPPower9258
             Stream receiveStream = response.GetResponseStream();
             StreamReader readStream = new StreamReader(receiveStream);
 
-            string stat = readStream.ReadToEnd().Remove(0, "<html>".Length);
-            stat = stat.Remove(stat.IndexOf('<'));
-            if (!stat.StartsWith(setting))
+            if (!ParseReply(readStream.ReadToEnd(), url).Contains(setting))
                 throw new InvalidOperationException(string.Format("Could not set: {0}", url));
         }
 
